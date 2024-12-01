@@ -123,6 +123,7 @@ Window::Window() {
         m_ui.fontList->clear();
         const QStringList files = filesFromDirectory(m_ui.path->text());
         m_ui.fontList->addItems(files);
+        m_ui.results->setText(tr("%1 files found").arg(files.size()));
     });
 }
 
