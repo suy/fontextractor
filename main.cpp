@@ -144,6 +144,18 @@ Window::Window() {
         m_ui.results->setText(tr("%1 files found").arg(files.size()));
     });
 
+    auto render = [](const QString& font, const QString& glyph, int side) {
+        const QSize size(side, side);
+        const auto path = paintFromFont(font, glyph, side);
+        const QRectF bounds = path.boundingRect();
+        if (bounds.width() > size.width() || bounds.height() > size.height()) {
+            const QString base = font.section(QLatin1Char('/'), -1).section(QLatin1Char('.'), 0, 0);
+            qWarning() << "Font" << base << "doesn't fit properly";
+            // return QPixmap();
+        }
+        return pathToPixmap(path, size);
+    };
+
     auto preview = [this] (const QString& filePath) {
         const QSize size(m_ui.size->value(), m_ui.size->value());
         for (QChar c : m_ui.glyphs->text()) {
@@ -171,6 +183,22 @@ Window::Window() {
     connect(m_ui.fontList, &QListWidget::clicked, this, [=] (const QModelIndex& index) {
         const QString filePath = index.data().toString();
         preview(filePath);
+    });
+
+    connect(m_ui.generateOne, &QPushButton::clicked, this, [=] {
+        auto selected = m_ui.fontList->selectedItems();
+        if (selected.isEmpty())
+            return;
+        auto first = selected.first();
+        const QString font = first->text();
+        const QString base = font.section(QLatin1Char('/'), -1).section(QLatin1Char('.'), 0, 0);
+        const QString glyph = m_ui.glyphs->text().at(0);
+        const int side = m_ui.size->value();
+        const QPixmap pixmap = render(font, glyph, side);
+        if (pixmap.isNull())
+            return;
+        qDebug() << "saving" << base;
+        pixmap.save(base + ".png");
     });
 }
 
