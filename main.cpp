@@ -1,16 +1,16 @@
-#include <QPainterPath>
-#include <QtCore>
 #include <QApplication>
-#include <QRawFont>
-#include <QPainter>
-#include <QImage>
-#include <QWidget>
-#include <QVBoxLayout>
-#include <QLineEdit>
-#include <QPushButton>
+#include <QDirIterator>
 #include <QFileDialog>
+#include <QImage>
+#include <QLineEdit>
 #include <QListWidget>
+#include <QPainter>
+#include <QPainterPath>
+#include <QPushButton>
+#include <QRawFont>
 #include <QSpinBox>
+#include <QVBoxLayout>
+#include <QWidget>
 
 QPainterPath pathFromFont(const QString& name,
                           const QString& text = QString("@"),
