@@ -39,11 +39,11 @@ QStringList filesFromDirectory(const QString& path)
     QStringList result;
     QDirIterator iterator(path, QStringList() << "*.otf" << "*.ttf",
                           QDir::NoDotAndDotDot|QDir::Files, QDirIterator::Subdirectories);
-    qDebug() << "Looking for fonts at" << path << iterator.hasNext();
+    // qDebug() << "Looking for fonts at" << path << iterator.hasNext();
     while (iterator.hasNext()) {
         const QString fontName = iterator.nextFileInfo().absoluteFilePath();
         result << fontName;
-        qDebug() << fontName;
+        // qDebug() << fontName;
     }
     return result;
 }
@@ -108,7 +108,7 @@ Window::Window() {
     connect(directoryEdit, &QLineEdit::editingFinished, this, [=] {
         fontList->clear();
         const QStringList files = filesFromDirectory(directoryEdit->text());
-        qDebug() << "files from dir" << files;
+        // qDebug() << "files from dir" << files;
         fontList->addItems(files);
     });
 }
