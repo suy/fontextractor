@@ -12,6 +12,8 @@
 #include <QVBoxLayout>
 #include <QWidget>
 
+#include "ui_window.h"
+
 QPainterPath pathFromFont(const QString& name,
                           const QString& text = QString("@"),
                           int size = 128)
@@ -64,6 +66,7 @@ public:
 
 private:
     QPainterPath m_path;
+    Ui::Window m_ui;
 };
 
 Window::Window() {
@@ -71,7 +74,9 @@ Window::Window() {
     // qDebug() << "path" << m_path;
     // qDebug() << "    > bounding rect" << m_path.boundingRect();
     // qDebug() << "    > bounding rect center" << m_path.boundingRect().center();
+    m_ui.setupUi(this);
 
+#if 0
     auto layout = new QVBoxLayout;
     setLayout(layout);
 
@@ -95,21 +100,29 @@ Window::Window() {
 
     auto generate = new QPushButton(tr("Generate images"), this);
     layout->addWidget(generate);
+#endif
 
-    connect(directoryChange, &QPushButton::clicked, this, [=] {
-        const QString oldDirectory = directoryEdit->text();
+
+    connect(m_ui.changePath, &QPushButton::clicked, this, [=] {
+        const QString oldDirectory = m_ui.path->text();
         const QString newDirectory =
             QFileDialog::getExistingDirectory(this, tr("Choose font directory"),
-                                              directoryEdit->text());
+                                              m_ui.path->text());
         if (!newDirectory.isEmpty() && newDirectory != oldDirectory)
-            directoryEdit->setText(newDirectory);
+            m_ui.path->setText(newDirectory);
     });
 
-    connect(directoryEdit, &QLineEdit::editingFinished, this, [=] {
-        fontList->clear();
-        const QStringList files = filesFromDirectory(directoryEdit->text());
-        // qDebug() << "files from dir" << files;
-        fontList->addItems(files);
+    // connect(m_ui.path, &QLineEdit::editingFinished, this, [=] {
+    //     m_ui.fontList->clear();
+    //     const QStringList files = filesFromDirectory(m_ui.path->text());
+    //     // qDebug() << "files from dir" << files;
+    //     m_ui.fontList->addItems(files);
+    // });
+
+    connect(m_ui.scan, &QPushButton::clicked, this, [this] {
+        m_ui.fontList->clear();
+        const QStringList files = filesFromDirectory(m_ui.path->text());
+        m_ui.fontList->addItems(files);
     });
 }
 
