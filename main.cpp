@@ -14,11 +14,14 @@
 
 #include "ui_window.h"
 
-QPainterPath pathFromFont(const QString& name,
-                          const QString& text = QString("@"),
-                          int size = 128)
+QPainterPath paintFromFont(const QString& name,
+                           const QString& text = QString("@"),
+                           int size = 128)
 {
     QRawFont font(name, size);
+    if (!font.isValid()) {
+        qCritical() << name << "not parsed properly by QRawFont!";
+    }
     Q_ASSERT(font.isValid());
 
     const QList<quint32> indexes = font.glyphIndexesForString(text);
@@ -26,6 +29,21 @@ QPainterPath pathFromFont(const QString& name,
     const quint32 index = indexes.first();
 
     return font.pathForGlyph(index);
+}
+
+QPixmap pathToPixmap(const QPainterPath& path, QSize size)
+{
+    QPixmap pixmap(size);
+    pixmap.fill(Qt::transparent);
+
+    QPointF center = path.boundingRect().center();
+
+    QPainter painter(&pixmap);
+    painter.setRenderHint(QPainter::Antialiasing);
+    painter.setPen(Qt::black);
+    painter.translate(pixmap.rect().center() - center);
+    painter.drawPath(path);
+    return pixmap;
 }
 
 void pathToImage(const QPainterPath& path, QSize size, const QString& fileName)
@@ -70,7 +88,7 @@ private:
 };
 
 Window::Window() {
-    // m_path = pathFromFont(QString("/home/alex/.local/share/fonts/Hello_Doctor.otf"));
+    // m_path = paintFromFont(QString("/home/alex/.local/share/fonts/Hello_Doctor.otf"));
     // qDebug() << "path" << m_path;
     // qDebug() << "    > bounding rect" << m_path.boundingRect();
     // qDebug() << "    > bounding rect center" << m_path.boundingRect().center();
@@ -124,6 +142,35 @@ Window::Window() {
         const QStringList files = filesFromDirectory(m_ui.path->text());
         m_ui.fontList->addItems(files);
         m_ui.results->setText(tr("%1 files found").arg(files.size()));
+    });
+
+    auto preview = [this] (const QString& filePath) {
+        const QSize size(m_ui.size->value(), m_ui.size->value());
+        for (QChar c : m_ui.glyphs->text()) {
+            QString glyph(c);
+            // const auto path = paintFromFont(filePath, glyph, size);
+            const auto path = paintFromFont(filePath, glyph, m_ui.size->value());
+            const QRectF bounds = path.boundingRect();
+            if (bounds.width() > size.width() || bounds.height() > size.height()) {
+                const QString base = filePath.section(QLatin1Char('/'), -1).section(QLatin1Char('.'), 0, 0);
+                qWarning() << "Font" << base << "doesn't fit properly";
+            }
+            const QPixmap pixmap = pathToPixmap(path, size);
+            m_ui.preview->setPixmap(pixmap);
+        }
+    };
+
+    connect(m_ui.fontList, &QListWidget::itemSelectionChanged, this, [=] {
+        auto selected = m_ui.fontList->selectedItems();
+        if (selected.isEmpty())
+            return;
+        auto first = selected.first();
+        preview(first->text());
+    });
+
+    connect(m_ui.fontList, &QListWidget::clicked, this, [=] (const QModelIndex& index) {
+        const QString filePath = index.data().toString();
+        preview(filePath);
     });
 }
 

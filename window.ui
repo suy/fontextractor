@@ -104,7 +104,11 @@
    <item>
     <layout class="QVBoxLayout" name="verticalLayout_2">
      <item>
-      <widget class="QWidget" name="preview" native="true"/>
+      <widget class="QLabel" name="preview">
+       <property name="text">
+        <string>Preview...</string>
+       </property>
+      </widget>
      </item>
      <item>
       <layout class="QHBoxLayout" name="horizontalLayout_4">
