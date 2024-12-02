@@ -12,6 +12,7 @@
 #include <QSpinBox>
 #include <QVBoxLayout>
 #include <QWidget>
+#include <QShortcut>
 
 #include "ui_window.h"
 
@@ -101,6 +102,9 @@ Window::Window() {
     // qDebug() << "    > bounding rect" << m_path.boundingRect();
     // qDebug() << "    > bounding rect center" << m_path.boundingRect().center();
     m_ui.setupUi(this);
+
+    auto quit = new QShortcut(QKeySequence("Ctrl+Q"), this);
+    connect(quit, &QShortcut::activated, this, &QWidget::close);
 
 #if 0
     auto layout = new QVBoxLayout;
