@@ -1,5 +1,6 @@
 #include <QApplication>
 #include <QDirIterator>
+#include <QElapsedTimer>
 #include <QFileDialog>
 #include <QImage>
 #include <QLineEdit>
@@ -201,7 +202,6 @@ Window::Window() {
             path.append("/");
             path.append(glyph);
             path.append("/");
-            qDebug() << "creating" << path << "in" << QDir::current().path();
             if (!QDir::current().mkpath(path)) {
                 qCritical() << "Could not create output directory! Skipping files";
                 return;
@@ -225,6 +225,17 @@ Window::Window() {
         auto first = selected.first();
         const QString font = first->text();
         generateOne(font);
+    });
+
+    connect(m_ui.generateAll, &QPushButton::clicked, this, [=] {
+        QElapsedTimer timer;
+        timer.start();
+        for (int row = 0, last = m_ui.fontList->count(); row < last; ++row) {
+            auto item = m_ui.fontList->item(row);
+            const QString font = item->text();
+            generateOne(font);
+        }
+        qDebug() << "TOTAL elapsed time:" << timer.elapsed()/1000.0 << "seconds";
     });
 }
 
