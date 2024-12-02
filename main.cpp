@@ -28,8 +28,10 @@ QPainterPath paintFromFont(const QString& name,
     const QList<quint32> indexes = font.glyphIndexesForString(text);
     Q_ASSERT(!indexes.isEmpty());
     const quint32 index = indexes.first();
-    if (index == 0)
+    if (index == 0) {
         qWarning() << "Font" << name << "has index 0!!";
+        return QPainterPath();
+    }
 
     return font.pathForGlyph(index);
 }
@@ -70,6 +72,7 @@ QStringList filesFromDirectory(const QString& path)
         result << fontName;
         // qDebug() << fontName;
     }
+    result.sort();
     return result;
 }
 
@@ -152,11 +155,14 @@ Window::Window() {
     auto render = [](const QString& font, const QString& glyph, int side) {
         const QSize size(side, side);
         const auto path = paintFromFont(font, glyph, side);
+        if (path.isEmpty()) {
+            return QPixmap();
+        }
         const QRectF bounds = path.boundingRect();
         if (bounds.width() > size.width() || bounds.height() > size.height()) {
             const QString base = font.section(QLatin1Char('/'), -1).section(QLatin1Char('.'), 0, 0);
             qWarning() << "Font" << base << "doesn't fit properly";
-            // return QPixmap();
+            return QPixmap();
         }
         return pathToPixmap(path, size);
     };
