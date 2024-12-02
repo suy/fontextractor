@@ -27,6 +27,8 @@ QPainterPath paintFromFont(const QString& name,
     const QList<quint32> indexes = font.glyphIndexesForString(text);
     Q_ASSERT(!indexes.isEmpty());
     const quint32 index = indexes.first();
+    if (index == 0)
+        qWarning() << "Font" << name << "has index 0!!";
 
     return font.pathForGlyph(index);
 }
@@ -40,19 +42,21 @@ QPixmap pathToPixmap(const QPainterPath& path, QSize size)
 
     QPainter painter(&pixmap);
     painter.setRenderHint(QPainter::Antialiasing);
-    painter.setPen(Qt::black);
+    const QColor color = Qt::white;
+    painter.setPen(color);
+    painter.setBrush(color);
     painter.translate(pixmap.rect().center() - center);
     painter.drawPath(path);
     return pixmap;
 }
 
-void pathToImage(const QPainterPath& path, QSize size, const QString& fileName)
-{
-    QImage image(size, QImage::Format_ARGB32);
-    QPainter painter(&image);
-    painter.drawPath(path);
-    image.save(fileName);
-}
+// void pathToImage(const QPainterPath& path, QSize size, const QString& fileName)
+// {
+//     QImage image(size, QImage::Format_ARGB32);
+//     QPainter painter(&image);
+//     painter.drawPath(path);
+//     image.save(fileName);
+// }
 
 QStringList filesFromDirectory(const QString& path)
 {
@@ -192,13 +196,31 @@ Window::Window() {
         auto first = selected.first();
         const QString font = first->text();
         const QString base = font.section(QLatin1Char('/'), -1).section(QLatin1Char('.'), 0, 0);
-        const QString glyph = m_ui.glyphs->text().at(0);
-        const int side = m_ui.size->value();
-        const QPixmap pixmap = render(font, glyph, side);
-        if (pixmap.isNull())
-            return;
-        qDebug() << "saving" << base;
-        pixmap.save(base + ".png");
+        for (auto glyph : m_ui.glyphs->text()) {
+            const int side = m_ui.size->value();
+            const QPixmap pixmap = render(font, glyph, side);
+            if (pixmap.isNull())
+                return;
+            QString path = "output/";
+            path.append(QString::number(side));
+            path.append("/");
+            path.append(glyph);
+            path.append("/");
+            qDebug() << "creating" << path << "in" << QDir::current().path();
+            if (!QDir::current().mkpath(path)) {
+                qCritical() << "Could not create output directory! Skipping files";
+                return;
+            }
+            path.append(base);
+            path.append(".png");
+            qDebug() << "saving" << path;
+
+            const bool success = pixmap.save(path);
+            if (!success) {
+                qWarning() << "Could not create file";
+                break;
+            }
+        }
     });
 }
 
