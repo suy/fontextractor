@@ -189,12 +189,7 @@ Window::Window() {
         preview(filePath);
     });
 
-    connect(m_ui.generateOne, &QPushButton::clicked, this, [=] {
-        auto selected = m_ui.fontList->selectedItems();
-        if (selected.isEmpty())
-            return;
-        auto first = selected.first();
-        const QString font = first->text();
+    auto generateOne = [=](const QString& font) {
         const QString base = font.section(QLatin1Char('/'), -1).section(QLatin1Char('.'), 0, 0);
         for (auto glyph : m_ui.glyphs->text()) {
             const int side = m_ui.size->value();
@@ -221,6 +216,15 @@ Window::Window() {
                 break;
             }
         }
+    };
+
+    connect(m_ui.generateOne, &QPushButton::clicked, this, [=] {
+        auto selected = m_ui.fontList->selectedItems();
+        if (selected.isEmpty())
+            return;
+        auto first = selected.first();
+        const QString font = first->text();
+        generateOne(font);
     });
 }
 
